@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "vidgrep"
+version = "0.1.0"
+description = "A better way to gather knowledge from long videos"
+authors = ["Kinshuk Kashyap <kinshuk@abc.xyz>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+faster-whisper = "^1.1.1"
+mlx-whisper = "^0.4.2"
+tqdm = "^4.67.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
