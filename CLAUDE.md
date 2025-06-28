@@ -65,3 +65,6 @@ When implementing new features, follow the existing patterns:
 - Output JSON for intermediate data
 - Fail fast with clear error messages
 - Each step should be independently runnable
+
+## Misc. notes
+- use SponsorBlock (Chrome extension) to trim sections that contain ads / sponsor notes that are irrelevant to video topic. they use a crowdsourced public DB - use that (wont work for all videos, only highly watched ones, but better than nothing)
