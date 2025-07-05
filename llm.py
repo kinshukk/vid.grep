@@ -3,6 +3,7 @@ import requests
 import json
 from typing import Optional, Dict, Any
 import tiktoken
+from .decorators import langfuse_logging
 
 def get_api_key() -> str:
     """Get OpenRouter API key from environment."""
@@ -11,11 +12,33 @@ def get_api_key() -> str:
         raise ValueError("OPENROUTER_API_KEY environment variable not set")
     return api_key
 
-def get_default_model() -> str:
-    """Get default model from environment or return fallback."""
-    return os.getenv('MODEL_NAME', 'anthropic/claude-3-haiku')
+def get_env_variable(name: str, default: Optional[str] = None) -> str:
+    """Get an environment variable or raise an error if not set."""
+    value = os.getenv(name)
+    if value is None:
+        if default is not None:
+            return default
+        raise ValueError(f"{name} environment variable not set")
+    return value
 
-def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
+def get_default_model() -> str:
+    """Get default model from environment."""
+    return get_env_variable('MODEL_NAME', 'anthropic/claude-3.5-sonnet')
+
+def get_system_prompt() -> str:
+    """Get system prompt from environment."""
+    return get_env_variable('SYSTEM_PROMPT', "You are a helpful assistant.")
+
+def get_max_output() -> int:
+    """Get max output tokens from environment."""
+    return int(get_env_variable('MAX_OUTPUT', '8192'))
+
+def get_context_window() -> int:
+    """Get context window size from environment."""
+    return int(get_env_variable('CONTEXT_WINDOW', '200000'))
+
+@langfuse_logging
+def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int] = None, system_prompt: Optional[str] = None) -> str:
     """
     Make a raw API call to OpenRouter.
     
@@ -23,6 +46,7 @@ def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int]
         prompt: The prompt to send
         model: Model name (defaults to MODEL_NAME env var)
         max_tokens: Maximum tokens to generate
+        system_prompt: The system prompt to use
         
     Returns:
         Response text from the model
@@ -31,8 +55,11 @@ def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int]
         model = get_default_model()
     
     if max_tokens is None:
-        max_tokens = 4000
-    
+        max_tokens = get_max_output()
+
+    if system_prompt is None:
+        system_prompt = get_system_prompt()
+
     api_key = get_api_key()
     
     headers = {
@@ -40,14 +67,20 @@ def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int]
         "Content-Type": "application/json"
     }
     
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt
+        },
+        {
+            "role": "user", 
+            "content": prompt
+        }
+    ]
+
     data = {
         "model": model,
-        "messages": [
-            {
-                "role": "user", 
-                "content": prompt
-            }
-        ],
+        "messages": messages,
         "max_tokens": max_tokens
     }
     
@@ -57,8 +90,7 @@ def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int]
         json=data
     )
     
-    if response.status_code != 200:
-        raise Exception(f"API call failed: {response.status_code} - {response.text}")
+    response.raise_for_status()
     
     result = response.json()
     return result['choices'][0]['message']['content']
@@ -78,24 +110,14 @@ def count_tokens(text: str, model: str = None) -> int:
 def get_model_info(model_name: str) -> Dict[str, Any]:
     """
     Get model information including context window size.
-    Returns approximate values for common models.
     """
-    model_info = {
-        'anthropic/claude-3-haiku': {
-            'context_window': 200000,
-            'max_output': 4096
-        },
-        'anthropic/claude-3-sonnet': {
-            'context_window': 200000,
-            'max_output': 4096
-        },
-        'anthropic/claude-3-opus': {
-            'context_window': 200000,
-            'max_output': 4096
+    if model_name == get_default_model():
+        return {
+            'context_window': get_context_window(),
+            'max_output': get_max_output()
         }
+
+    return {
+        'context_window': get_context_window(),
+        'max_output': get_max_output()
     }
-    
-    return model_info.get(model_name, {
-        'context_window': 4096,  # Conservative fallback
-        'max_output': 1000
-    })

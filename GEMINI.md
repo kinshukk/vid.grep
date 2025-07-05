@@ -71,9 +71,13 @@ The system is designed as a simple, bash-orchestrated pipeline. Each step is an 
 - **Output**: Creates a `<transcript_filename>.summary.json` file.
 
 ### `llm.py`
-- **Purpose**: Provides a simple interface for making API calls to LLMs via OpenRouter.
-- **Input**: `call_llm()` function takes a list of messages and other parameters for the API call.
-- **Output**: Returns the response from the LLM API.
+- **Purpose**: Provides a simple, configured interface for making API calls to LLMs via OpenRouter. It is integrated with Langfuse for logging.
+- **`call_llm()`**: The primary function for making LLM calls. It takes a user prompt and optional parameters. It is decorated with `@langfuse_logging` to automatically handle logging.
+- **Configuration**: All model and API configurations are managed via environment variables, defined in `.env.example`.
+
+### `decorators.py`
+- **Purpose**: Contains decorators for cross-cutting concerns, such as logging.
+- **`@langfuse_logging`**: A decorator that wraps a function to log its execution to Langfuse, including inputs, outputs, and errors.
 
 ## Development Guidelines
 
@@ -85,3 +89,11 @@ When modifying the codebase or adding features, adhere to the following principl
 
 ## Misc. Notes
 - Consider using SponsorBlock to trim irrelevant sections (ads, sponsor notes) from videos. It uses a crowdsourced database. This may not work for all videos but is a potential enhancement.
+
+## Critical Instructions
+
+### Maintain `LOG.md`
+- **Purpose**: To maintain a comprehensive, append-only log of all project activities.
+- **Content**: Document all changes, bugs, fixes, style guides, recommendations, experiments, and decisions in `LOG.md`.
+- **Format**: Use concise bullet points.
+- **Trigger**: Any significant action, such as adding a feature, fixing a bug, or establishing a new convention, must be logged.
