@@ -1,3 +1,5 @@
+import json
+
 class TranscriptionResult:
     def __init__(self, text: str, segments: list, metadata: dict = None):
         self.text = text
@@ -6,6 +8,13 @@ class TranscriptionResult:
 
     def __repr__(self):
         return f"TranscriptionResult(text={self.text}\nsegments={self.segments})"
+
+    def to_dict(self):
+        return {
+            "text": self.text,
+            "segments": self.segments,
+            "metadata": self.metadata,
+        }
 
 def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5):
     if device == "mlx":
@@ -45,17 +54,19 @@ def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5):
 if __name__ == "__main__":
     import sys, time
     if len(sys.argv) < 2:
-        print("Usage: python transcribe.py <input_filepath> [device]")
+        print("Usage: python transcribe.py <input_filepath> [device]", file=sys.stderr)
         sys.exit(1)
     
     input_filepath = sys.argv[1]
     device = sys.argv[2] if len(sys.argv) > 2 else "cpu"  # "cpu" or "mlx"
     beam_size = 5 # keeping default for now
 
-    print(f"Starting transcription using {device.upper()} backend")
+    print(f"Starting transcription using {device.upper()} backend", file=sys.stderr)
     start_time = time.perf_counter()
     result = transcribe(input_filepath, beam_size=beam_size, device=device)
     end_time = time.perf_counter()
     execution_time = end_time - start_time
-    print(f"✅ Transcription completed in {execution_time:.2f}s | backend: ({device.upper()})")
-    print(f"Transcription Result: {result}")
+    print(f"✅ Transcription completed in {execution_time:.2f}s | backend: ({device.upper()})", file=sys.stderr)
+    
+    # Output as JSON
+    print(json.dumps(result.to_dict(), indent=2))

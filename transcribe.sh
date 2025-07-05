@@ -45,7 +45,7 @@ fi
 FULL_PATH=$(realpath "$WAV_FILE")
 
 echo "Transcribing audio..."
-python3 transcribe.py "$FULL_PATH" mlx > "$STORAGE_DIR/${SAFE_TITLE}.txt"
+poetry run python transcribe.py "$FULL_PATH" mlx > "$STORAGE_DIR/${SAFE_TITLE}.json"
 
 if [ $? -eq 0 ]; then
     echo "SUCCESS: Transcription saved to $STORAGE_DIR/${SAFE_TITLE}.txt"
