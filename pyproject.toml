@@ -11,6 +11,7 @@ faster-whisper = "^1.1.1"
 mlx-whisper = "^0.4.2"
 tqdm = "^4.67.1"
 langfuse = "3.1.2"
+dotenv = "^0.9.9"
 
 
 [build-system]

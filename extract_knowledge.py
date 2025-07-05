@@ -2,8 +2,8 @@ import sys
 import json
 import os
 from typing import Dict, List, Any
-from transcribe import TranscriptionResult
 from llm import call_llm, count_tokens, get_model_info, get_default_model
+from transcribe import TranscriptionResult
 
 def load_transcript(file_path: str) -> TranscriptionResult:
     """Load transcript from file path."""

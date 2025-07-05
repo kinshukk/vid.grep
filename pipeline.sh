@@ -25,7 +25,9 @@ if [ -z "$TRANSCRIPT_FILE" ]; then
 fi
 
 # Step 3: Extract knowledge from the transcript
-poetry run python extract_knowledge.py "$TRANSCRIPT_FILE"
+(cd "$(dirname "$0")" && SCRIPT_DIR=$(dirname "$0")
+export PYTHONPATH=$SCRIPT_DIR:$PYTHONPATH
+OPENROUTER_API_KEY=$OPENROUTER_API_KEY poetry run python -m extract_knowledge "$TRANSCRIPT_FILE")
 
 # The output of extract_knowledge.py is a .summary.json file.
 # We will rename it to <original-filename>.out.txt

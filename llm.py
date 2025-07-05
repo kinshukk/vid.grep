@@ -1,9 +1,11 @@
 import os
 import requests
-import json
 from typing import Optional, Dict, Any
 import tiktoken
-from .decorators import langfuse_logging
+from langfuse import observe, get_client
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_api_key() -> str:
     """Get OpenRouter API key from environment."""
@@ -37,7 +39,7 @@ def get_context_window() -> int:
     """Get context window size from environment."""
     return int(get_env_variable('CONTEXT_WINDOW', '200000'))
 
-@langfuse_logging
+@observe()
 def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int] = None, system_prompt: Optional[str] = None) -> str:
     """
     Make a raw API call to OpenRouter.
