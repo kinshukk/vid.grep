@@ -45,7 +45,8 @@ fi
 FULL_PATH=$(realpath "$WAV_FILE")
 
 echo "Transcribing audio..."
-poetry run python transcribe.py "$FULL_PATH" mlx > "$STORAGE_DIR/${SAFE_TITLE}.json"
+export OPENROUTER_API_KEY=$OPENROUTER_API_KEY
+poetry run python -m transcribe "$FULL_PATH" mlx > "$STORAGE_DIR/${SAFE_TITLE}.json"
 
 if [ $? -eq 0 ]; then
     echo "SUCCESS: Transcription saved to $STORAGE_DIR/${SAFE_TITLE}.txt"
