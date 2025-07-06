@@ -4,7 +4,11 @@ import os
 from typing import Dict, List, Any
 from llm import call_llm, count_tokens, get_model_info, get_default_model
 from transcribe import TranscriptionResult
+from langfuse import observe
 
+MAX_SUMMARY_TOKENS = 4096
+
+@observe()
 def load_transcript(file_path: str) -> TranscriptionResult:
     """Load transcript from file path."""
     if not os.path.exists(file_path):
@@ -37,6 +41,7 @@ def load_transcript(file_path: str) -> TranscriptionResult:
                 metadata=data.get('metadata', {})
             )
 
+@observe()
 def chunk_transcript(transcript: str, max_tokens: int, overlap_ratio: float = 0.25) -> List[str]:
     """
     Chunk transcript into overlapping segments for long texts.
@@ -85,6 +90,7 @@ def chunk_transcript(transcript: str, max_tokens: int, overlap_ratio: float = 0.
     
     return chunks
 
+@observe()
 def summarize_text(transcript: str) -> str:
     """
     Generate a summary of the transcript.
@@ -92,7 +98,7 @@ def summarize_text(transcript: str) -> str:
     """
     model = get_default_model()
     model_info = get_model_info(model)
-    max_input_tokens = model_info['context_window'] - 1000  # Reserve for prompt and output
+    max_input_tokens = model_info['context_window'] - MAX_SUMMARY_TOKENS  # Reserve for prompt and output
     
     # Check if transcript fits in single call
     transcript_tokens = count_tokens(transcript, model)
@@ -106,7 +112,7 @@ Transcript:
 
 Summary:"""
         
-        return call_llm(prompt, model, max_tokens=1000)
+        return call_llm(prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
     
     else:
         # Multi-pass summarization for long transcripts
@@ -135,15 +141,16 @@ Summary:"""
 
 Final comprehensive summary:"""
         
-        return call_llm(final_prompt, model, max_tokens=1000)
+        return call_llm(final_prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
 
+@observe()
 def extract_main_points(transcript: str) -> List[str]:
     """
     Extract main points/topics from the transcript.
     """
     model = get_default_model()
     model_info = get_model_info(model)
-    max_input_tokens = model_info['context_window'] - 1000
+    max_input_tokens = model_info['context_window'] - MAX_SUMMARY_TOKENS
     
     # For main points, we'll work with summary if transcript is too long
     if count_tokens(transcript, model) > max_input_tokens:
@@ -174,6 +181,7 @@ Return only the JSON array, no additional text:"""
     lines = [line.strip() for line in response.split('\n') if line.strip()]
     return [line.lstrip('- ').lstrip('• ') for line in lines if line]
 
+@observe()
 def process_transcript(file_path: str) -> Dict[str, Any]:
     """
     Process a transcript file to extract summary and main points.
@@ -195,6 +203,7 @@ def process_transcript(file_path: str) -> Dict[str, Any]:
         "main_points": main_points
     }
 
+@observe()
 def main():
     if len(sys.argv) != 2:
         print("Usage: python extract_knowledge.py <transcript_file>")

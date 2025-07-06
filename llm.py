@@ -2,10 +2,11 @@ import os
 import requests
 from typing import Optional, Dict, Any
 import tiktoken
-from langfuse import observe, get_client
+from langfuse import observe
 from dotenv import load_dotenv
 
 load_dotenv()
+DEFAULT_SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT")
 
 def get_api_key() -> str:
     """Get OpenRouter API key from environment."""
@@ -40,7 +41,7 @@ def get_context_window() -> int:
     return int(get_env_variable('CONTEXT_WINDOW', '200000'))
 
 @observe()
-def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int] = None, system_prompt: Optional[str] = None) -> str:
+def call_llm(prompt: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, model: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
     """
     Make a raw API call to OpenRouter.
     
@@ -83,7 +84,10 @@ def call_llm(prompt: str, model: Optional[str] = None, max_tokens: Optional[int]
     data = {
         "model": model,
         "messages": messages,
-        "max_tokens": max_tokens
+        "max_tokens": max_tokens,
+        "reasoning": {
+            "effort": "high",
+        }
     }
     
     response = requests.post(
