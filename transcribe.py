@@ -1,4 +1,5 @@
 import json
+from langfuse import observe
 
 class TranscriptionResult:
     def __init__(self, text: str, segments: list, metadata: dict = None):
@@ -16,6 +17,7 @@ class TranscriptionResult:
             "metadata": self.metadata,
         }
 
+@observe()
 def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5):
     if device == "mlx":
         import mlx_whisper

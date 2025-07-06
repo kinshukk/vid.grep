@@ -1,0 +1,3 @@
+- [] progress bar for transcription + Overall progress bar that includes all steps in pipeline
+- [] more detailed summary for technical podcast (dwarkesh podcast much deeper than ex: beerbiceps podcast). 1. param for level of detail 2. DETECT detail required 3. learn user preference over time
+- [] 
