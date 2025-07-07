@@ -79,6 +79,13 @@ The system is designed as a simple, bash-orchestrated pipeline. Each step is an 
 - **Purpose**: Contains decorators for cross-cutting concerns, such as logging.
 - **`@langfuse_logging`**: A decorator that wraps a function to log its execution to Langfuse, including inputs, outputs, and errors.
 
+## Future Work
+- Implement a progress bar for transcription and an overall pipeline progress bar.
+- Introduce a parameter for the level of detail in the summary, potentially with automatic detection based on the content.
+- Improve the file naming convention for output files (e.g.,`YYYY-MM-DD-hh-mm-ss--<video-title>.<extension>`).
+- Pass the summary of the previous chunk to the next chunk during chunked summarization to maintain context.
+- Consider using SponsorBlock to trim irrelevant sections from videos. It uses a crowdsourced database. This may not work for all videos but is a potential enhancement.
+
 ## Development Guidelines
 
 When modifying the codebase or adding features, adhere to the following principles:
@@ -86,9 +93,6 @@ When modifying the codebase or adding features, adhere to the following principl
 - **Independent Steps**: Ensure each part of the pipeline can be run independently.
 - **Fail Fast**: Implement clear error handling and logging.
 - **The Prime Directive**: Every change should aim to reduce the time it takes to get from a video file to actionable insights. Avoid adding features that do not directly support this goal for v1.
-
-## Misc. Notes
-- Consider using SponsorBlock to trim irrelevant sections (ads, sponsor notes) from videos. It uses a crowdsourced database. This may not work for all videos but is a potential enhancement.
 
 ## Critical Instructions
 
