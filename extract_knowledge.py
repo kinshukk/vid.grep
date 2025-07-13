@@ -8,6 +8,20 @@ from langfuse import observe
 
 MAX_SUMMARY_TOKENS = 4096
 
+def load_prompts() -> Dict[str, str]:
+    """Load prompts from prompts.json."""
+    try:
+        with open("prompts.json", 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print("Error: prompts.json not found.")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print("Error: prompts.json is not valid JSON.")
+        sys.exit(1)
+
+PROMPTS = load_prompts()
+
 @observe()
 def load_transcript(file_path: str) -> TranscriptionResult:
     """Load transcript from file path."""
@@ -105,12 +119,7 @@ def summarize_text(transcript: str) -> str:
     
     if transcript_tokens <= max_input_tokens:
         # Single pass summarization
-        prompt = f"""Please provide a comprehensive summary of the following transcript. Focus on the key insights, main arguments, and important details discussed.
-
-Transcript:
-{transcript}
-
-Summary:"""
+        prompt = PROMPTS["single_pass_summary"].format(transcript=transcript)
         
         return call_llm(prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
     
@@ -122,12 +131,7 @@ Summary:"""
         for i, chunk in enumerate(chunks):
             print(f"Summarizing chunk {i+1}/{len(chunks)}...")
             
-            prompt = f"""Please summarize this portion of a longer transcript. Focus on key points and maintain context for combination with other summaries.
-
-Transcript portion:
-{chunk}
-
-Summary:"""
+            prompt = PROMPTS["chunk_summary"].format(chunk=chunk)
             
             summary = call_llm(prompt, model, max_tokens=500)
             chunk_summaries.append(summary)
@@ -135,11 +139,7 @@ Summary:"""
         # Combine chunk summaries into final summary
         combined_summaries = "\n\n".join([f"Section {i+1}: {summary}" for i, summary in enumerate(chunk_summaries)])
         
-        final_prompt = f"""Please create a comprehensive final summary by combining these section summaries from a longer transcript:
-
-{combined_summaries}
-
-Final comprehensive summary:"""
+        final_prompt = PROMPTS["final_summary"].format(combined_summaries=combined_summaries)
         
         return call_llm(final_prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
 
@@ -160,12 +160,7 @@ def extract_main_points(transcript: str) -> List[str]:
     else:
         source_text = transcript
     
-    prompt = f"""Please extract the main points and topics discussed in this content. Return them as a JSON array of strings, where each string is a concise main point.
-
-Content:
-{source_text}
-
-Return only the JSON array, no additional text:"""
+    prompt = PROMPTS["extract_main_points"].format(source_text=source_text)
     
     response = call_llm(prompt, model, max_tokens=800)
     
