@@ -146,35 +146,44 @@ def summarize_text(transcript: str) -> str:
 @observe()
 def extract_main_points(transcript: str) -> List[str]:
     """
-    Extract main points/topics from the transcript.
+    Extract main points/topics from the transcript using a two-step process.
     """
-    model = get_default_model()
-    model_info = get_model_info(model)
+    # Step 1: Get main points as bulleted list from the default model
+    large_model = get_default_model()
+    model_info = get_model_info(large_model)
     max_input_tokens = model_info['context_window'] - MAX_SUMMARY_TOKENS
-    
-    # For main points, we'll work with summary if transcript is too long
-    if count_tokens(transcript, model) > max_input_tokens:
-        # Use summary for main points extraction
-        summary = summarize_text(transcript)
-        source_text = summary
+
+    if count_tokens(transcript, large_model) > max_input_tokens:
+        source_text = summarize_text(transcript)
     else:
         source_text = transcript
+
+    prompt_text = PROMPTS["extract_main_points_text"].format(source_text=source_text)
+    bullet_points_text = call_llm(prompt_text, large_model, max_tokens=800)
+
+    # Step 2: Format the bullet points into a JSON array using a smaller model
+    formatter_model = "openai/gpt-4o"
+    prompt_json = PROMPTS["format_as_json_array"].format(bullet_points=bullet_points_text)
     
-    prompt = PROMPTS["extract_main_points"].format(source_text=source_text)
-    
-    response = call_llm(prompt, model, max_tokens=800)
-    
+    json_response = call_llm(prompt_json, model=formatter_model, max_tokens=1024)
+
     try:
-        # Try to parse as JSON
-        main_points = json.loads(response.strip())
+        # Clean up the response before parsing
+        cleaned_response = json_response.strip()
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[7:-4].strip()
+            
+        main_points = json.loads(cleaned_response)
         if isinstance(main_points, list):
             return main_points
     except json.JSONDecodeError:
-        pass
-    
-    # Fallback: split by lines if JSON parsing fails
-    lines = [line.strip() for line in response.split('\n') if line.strip()]
-    return [line.lstrip('- ').lstrip('• ') for line in lines if line]
+        print("Warning: Failed to parse JSON from formatter model. Falling back to line splitting.")
+        # Fallback to parsing the bullet points from the first call
+        lines = [line.strip() for line in bullet_points_text.split('\n') if line.strip()]
+        return [line.lstrip('- ').lstrip('* ').lstrip('• ') for line in lines if line]
+
+    # Fallback if JSON parsing still fails for some reason
+    return []
 
 @observe()
 def process_transcript(file_path: str) -> Dict[str, Any]:

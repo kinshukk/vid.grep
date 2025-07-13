@@ -2,5 +2,6 @@
     "single_pass_summary": "Please provide a comprehensive summary of the following transcript. Focus on the key insights, main arguments, and important details discussed.\n\nTranscript:\n{transcript}\n\nSummary:",
     "chunk_summary": "Please summarize this portion of a longer transcript. Focus on key points and maintain context for combination with other summaries.\n\nTranscript portion:\n{chunk}\n\nSummary:",
     "final_summary": "Please create a comprehensive final summary by combining these section summaries from a longer transcript:\n\n{combined_summaries}\n\nFinal comprehensive summary:",
-    "extract_main_points": "Please extract the main points and topics discussed in this content. Return them as a JSON array of strings, where each string is a concise main point.\n\nContent:\n{source_text}\n\nReturn only the JSON array, no additional text:"
+    "extract_main_points_text": "Please extract the main points and topics discussed in this content. Present them as a clear, bulleted list.\n\nContent:\n{source_text}\n\nMain Points:",
+    "format_as_json_array": "Please convert the following bulleted list of main points into a JSON array of strings. Each bullet point should be a separate string in the array. Only return the JSON array, with no other text or explanation.\n\nBulleted list:\n{bullet_points}\n\nJSON array:"
 }
