@@ -51,12 +51,12 @@ The system is designed as a simple, bash-orchestrated pipeline. Each step is an 
 ### `pipeline.sh`
 - **Purpose**: Orchestrates the video processing pipeline, from transcription to knowledge extraction.
 - **Input**: YouTube URL (string).
-- **Output**: Creates a `<video_title>.out.txt` file in the `storage/` directory containing the extracted knowledge.
+- **Output**: Creates a `<video_title>.summary.json` file in the `storage/` directory containing the extracted knowledge.
 
 ### `transcribe.sh`
 - **Purpose**: Downloads audio from a YouTube URL, transcribes it using `transcribe.py`, and saves the result as a JSON file.
 - **Input**: YouTube URL (string).
-- **Output**: Creates a `<video_title>.json` file in the `storage/` directory.
+- **Output**: Creates a `<video_title>.json` file in the `storage/` directory and prints the filename to standard output.
 
 ### `transcribe.py`
 - **Purpose**: Transcribes an audio file and outputs the transcription result in JSON format.
@@ -69,11 +69,12 @@ The system is designed as a simple, bash-orchestrated pipeline. Each step is an 
 - **Purpose**: Processes a transcript file to extract a summary and main points.
 - **Input**: Path to a JSON transcript file (string).
 - **Output**: Creates a `<transcript_filename>.summary.json` file.
+- **Configuration**: All prompts, model names, and token parameters are configured in `llm_config.json`.
 
 ### `llm.py`
 - **Purpose**: Provides a simple, configured interface for making API calls to LLMs via OpenRouter. It is integrated with Langfuse for logging.
-- **`call_llm()`**: The primary function for making LLM calls. It takes a user prompt and optional parameters. It is decorated with `@langfuse_logging` to automatically handle logging.
-- **Configuration**: All model and API configurations are managed via environment variables, defined in `.env.example`.
+- **`call_llm()`**: The primary function for making LLM calls. It takes a user prompt and optional parameters. It is decorated with `@observe()` to automatically handle logging.
+- **Configuration**: API keys and model details are managed via environment variables, defined in `.env.example`.
 
 ### `decorators.py`
 - **Purpose**: Contains decorators for cross-cutting concerns, such as logging.

@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Summarizer",
+  "version": "0.1",
+  "description": "Summarizes YouTube videos using the vid.grep pipeline.",
+  "permissions": ["activeTab", "scripting", "nativeMessaging"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

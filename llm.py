@@ -6,7 +6,6 @@ from langfuse import observe
 from dotenv import load_dotenv
 
 load_dotenv()
-DEFAULT_SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT")
 
 def get_api_key() -> str:
     """Get OpenRouter API key from environment."""
@@ -23,6 +22,10 @@ def get_env_variable(name: str, default: Optional[str] = None) -> str:
             return default
         raise ValueError(f"{name} environment variable not set")
     return value
+
+def get_openrouter_api_base() -> str:
+    """Get OpenRouter API base URL from environment."""
+    return get_env_variable('OPENROUTER_API_BASE', 'https://openrouter.ai/api/v1')
 
 def get_default_model() -> str:
     """Get default model from environment."""
@@ -41,7 +44,7 @@ def get_context_window() -> int:
     return int(get_env_variable('CONTEXT_WINDOW', '200000'))
 
 @observe()
-def call_llm(prompt: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, model: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
+def call_llm(prompt: str, system_prompt: Optional[str] = None, model: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
     """
     Make a raw API call to OpenRouter.
     
@@ -91,7 +94,7 @@ def call_llm(prompt: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, model: Opt
     }
     
     response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
+        f"{get_openrouter_api_base()}/chat/completions",
         headers=headers,
         json=data
     )
@@ -101,28 +104,19 @@ def call_llm(prompt: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, model: Opt
     result = response.json()
     return result['choices'][0]['message']['content']
 
-def count_tokens(text: str, model: str = None) -> int:
+def count_tokens(text: str, model: str) -> int:
     """
     Count tokens in text for the given model.
     Uses tiktoken for approximation since exact tokenization varies by model.
     """
-    if model is None:
-        model = get_default_model()
-    
     # Use cl100k_base for Claude models as approximation
     encoding = tiktoken.get_encoding("cl100k_base")
     return len(encoding.encode(text))
 
-def get_model_info(model_name: str) -> Dict[str, Any]:
+def get_default_model_info() -> Dict[str, Any]:
     """
-    Get model information including context window size.
+    Get default model information including context window size.
     """
-    if model_name == get_default_model():
-        return {
-            'context_window': get_context_window(),
-            'max_output': get_max_output()
-        }
-
     return {
         'context_window': get_context_window(),
         'max_output': get_max_output()

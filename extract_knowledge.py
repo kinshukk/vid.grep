@@ -2,25 +2,25 @@ import sys
 import json
 import os
 from typing import Dict, List, Any
-from llm import call_llm, count_tokens, get_model_info, get_default_model
+from llm import call_llm, count_tokens, get_default_model_info, get_default_model
 from transcribe import TranscriptionResult
 from langfuse import observe
 
-MAX_SUMMARY_TOKENS = 4096
-
-def load_prompts() -> Dict[str, str]:
-    """Load prompts from prompts.json."""
+def load_llm_config() -> Dict[str, Any]:
+    """Load LLM config from llm_config.json."""
     try:
-        with open("prompts.json", 'r') as f:
+        with open("llm_config.json", 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        print("Error: prompts.json not found.")
+        print("Error: llm_config.json not found.")
         sys.exit(1)
     except json.JSONDecodeError:
-        print("Error: prompts.json is not valid JSON.")
+        print("Error: llm_config.json is not valid JSON.")
         sys.exit(1)
 
-PROMPTS = load_prompts()
+LLM_CONFIG = load_llm_config()
+PROMPTS = LLM_CONFIG['prompts']
+
 
 @observe()
 def load_transcript(file_path: str) -> TranscriptionResult:
@@ -111,8 +111,8 @@ def summarize_text(transcript: str) -> str:
     Handles both short and long transcripts.
     """
     model = get_default_model()
-    model_info = get_model_info(model)
-    max_input_tokens = model_info['context_window'] - MAX_SUMMARY_TOKENS  # Reserve for prompt and output
+    model_info = get_default_model_info()
+    max_input_tokens = model_info['context_window'] - LLM_CONFIG['params']['max_summary_tokens']  # Reserve for prompt and output
     
     # Check if transcript fits in single call
     transcript_tokens = count_tokens(transcript, model)
@@ -121,7 +121,7 @@ def summarize_text(transcript: str) -> str:
         # Single pass summarization
         prompt = PROMPTS["single_pass_summary"].format(transcript=transcript)
         
-        return call_llm(prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
+        return call_llm(prompt, model, max_tokens=LLM_CONFIG['params']['max_summary_tokens'])
     
     else:
         # Multi-pass summarization for long transcripts
@@ -133,7 +133,7 @@ def summarize_text(transcript: str) -> str:
             
             prompt = PROMPTS["chunk_summary"].format(chunk=chunk)
             
-            summary = call_llm(prompt, model, max_tokens=500)
+            summary = call_llm(prompt, model, max_tokens=LLM_CONFIG['params']['chunk_summary_max_tokens'])
             chunk_summaries.append(summary)
         
         # Combine chunk summaries into final summary
@@ -141,7 +141,7 @@ def summarize_text(transcript: str) -> str:
         
         final_prompt = PROMPTS["final_summary"].format(combined_summaries=combined_summaries)
         
-        return call_llm(final_prompt, model, max_tokens=MAX_SUMMARY_TOKENS)
+        return call_llm(final_prompt, model, max_tokens=LLM_CONFIG['params']['max_summary_tokens'])
 
 @observe()
 def extract_main_points(transcript: str) -> List[str]:
@@ -150,8 +150,8 @@ def extract_main_points(transcript: str) -> List[str]:
     """
     # Step 1: Get main points as bulleted list from the default model
     large_model = get_default_model()
-    model_info = get_model_info(large_model)
-    max_input_tokens = model_info['context_window'] - MAX_SUMMARY_TOKENS
+    model_info = get_default_model_info()
+    max_input_tokens = model_info['context_window'] - LLM_CONFIG['params']['max_summary_tokens']
 
     if count_tokens(transcript, large_model) > max_input_tokens:
         source_text = summarize_text(transcript)
@@ -159,13 +159,13 @@ def extract_main_points(transcript: str) -> List[str]:
         source_text = transcript
 
     prompt_text = PROMPTS["extract_main_points_text"].format(source_text=source_text)
-    bullet_points_text = call_llm(prompt_text, large_model, max_tokens=800)
+    bullet_points_text = call_llm(prompt_text, large_model, max_tokens=LLM_CONFIG['params']['extract_main_points_max_tokens'])
 
     # Step 2: Format the bullet points into a JSON array using a smaller model
-    formatter_model = "openai/gpt-4o"
+    formatter_model = LLM_CONFIG['models']['formatter']
     prompt_json = PROMPTS["format_as_json_array"].format(bullet_points=bullet_points_text)
     
-    json_response = call_llm(prompt_json, model=formatter_model, max_tokens=1024)
+    json_response = call_llm(prompt_json, model=formatter_model, max_tokens=LLM_CONFIG['params']['format_as_json_max_tokens'])
 
     try:
         # Clean up the response before parsing

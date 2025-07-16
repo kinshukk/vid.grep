@@ -41,15 +41,18 @@ if [ ! -f "$WAV_FILE" ]; then
     exit 1
 fi
 
+JSON_FILE="$STORAGE_DIR/${SAFE_TITLE}.json"
+
 # Get absolute path
 FULL_PATH=$(realpath "$WAV_FILE")
 
 echo "Transcribing audio..."
 export OPENROUTER_API_KEY=$OPENROUTER_API_KEY
-poetry run python -m transcribe "$FULL_PATH" mlx > "$STORAGE_DIR/${SAFE_TITLE}.json"
+poetry run python -m transcribe "$FULL_PATH" mlx > "$JSON_FILE"
 
 if [ $? -eq 0 ]; then
-    echo "SUCCESS: Transcription saved to $STORAGE_DIR/${SAFE_TITLE}.txt"
+    echo "SUCCESS: Transcription saved to $JSON_FILE"
+    echo "$JSON_FILE" # Output the filename for the pipeline
 else
     echo "ERROR: Transcription failed"
     exit 1
