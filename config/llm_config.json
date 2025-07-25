@@ -1,0 +1,20 @@
+{
+  "models": {
+    "default": "openrouter/anthropic/claude-3-haiku-20240307",
+    "formatter": "openai/gpt-4o"
+  },
+  "params": {
+    "max_summary_tokens": 4096,
+    "chunk_summary_max_tokens": 500,
+    "extract_main_points_max_tokens": 800,
+    "format_as_json_max_tokens": 1024
+  },
+  "prompts": {
+    "single_pass_summary": "Please provide a comprehensive summary of the following transcript. Focus on the key insights, main arguments, and important details discussed.\n\nTranscript:\n{transcript}\n\nSummary:",
+    "chunk_summary": "Please summarize this portion of a longer transcript. Focus on key points and maintain context for combination with other summaries.\n\nTranscript portion:\n{chunk}\n\nSummary:",
+    "chunk_summary_with_context": "You are summarizing a long transcript in chunks. This is the summary of the previous chunk:\n\n<previous_summary>\n{previous_summary}\n</previous_summary>\n\nNow, please summarize the following new chunk, keeping in mind the context from the previous summary.\n\nNew transcript portion:\n{chunk}\n\nSummary of new portion:",
+    "final_summary": "Please create a comprehensive final summary by combining these section summaries from a longer transcript:\n\n{combined_summaries}\n\nFinal comprehensive summary:",
+    "extract_main_points_text": "Please extract the main points and topics discussed in this content. Present them as a clear, bulleted list.\n\nContent:\n{source_text}\n\nMain Points:",
+    "format_as_json_array": "Please convert the following bulleted list of main points into a JSON array of strings. Each bullet point should be a separate string in the array. Only return the JSON array, with no other text or explanation.\n\nBulleted list:\n{bullet_points}\n\nJSON array:"
+  }
+}
