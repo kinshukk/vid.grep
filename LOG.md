@@ -27,3 +27,5 @@ This is an append-only log to document all changes, bugs, fixes, style guides, r
   - Fixed various syntax and import errors during testing.
   - Configured `pytest.ini` for `pythonpath`.
   - Merged `feat/code-refactoring-and-testing` into `master` and deleted the feature branch.
+- **File Cleanup:**
+  - Removed redundant files: `transcribe.sh`, `extract_knowledge.py`, `llm.py`, `transcribe.py`, and `llm_config.json`.
