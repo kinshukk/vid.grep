@@ -1,13 +1,13 @@
 {
   "models": {
-    "default": "openrouter/anthropic/claude-3-haiku-20240307",
+    "default": "openrouter/anthropic/claude-sonnet-4",
     "formatter": "openai/gpt-4o"
   },
   "params": {
-    "max_summary_tokens": 4096,
-    "chunk_summary_max_tokens": 500,
-    "extract_main_points_max_tokens": 800,
-    "format_as_json_max_tokens": 1024
+    "max_summary_tokens": 8192,
+    "chunk_summary_max_tokens": 2048,
+    "extract_main_points_max_tokens": 4096,
+    "format_as_json_max_tokens": 2048
   },
   "prompts": {
     "single_pass_summary": "Please provide a comprehensive summary of the following transcript. Focus on the key insights, main arguments, and important details discussed.\n\nTranscript:\n{transcript}\n\nSummary:",

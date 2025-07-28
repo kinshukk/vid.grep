@@ -44,7 +44,7 @@ def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5) -> 'Transc
     if device == "mlx":
         import mlx_whisper
 
-        result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-large-v3-mlx-4bit")
+        result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-medium-mlx-q4")
         return TranscriptionResult(
             text=result["text"],
             segments=result["segments"],
@@ -58,7 +58,7 @@ def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5) -> 'Transc
         from tqdm import tqdm
 
         # cpu, INT8
-        model = WhisperModel(model_size_or_path="large-v3", device="cpu", compute_type="int8")
+        model = WhisperModel(model_size_or_path="tiny", device="cpu", compute_type="int8")
 
         segments, info = model.transcribe(input_filepath, beam_size=beam_size)
         segs = [s for s in tqdm(segments)] # collecting from generator

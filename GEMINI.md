@@ -14,13 +14,10 @@ vid.grep is a tool for deep analysis of long videos by searching and navigating 
 poetry install
 ```
 
-### Transcription
+### Usage
 ```bash
-# Transcribe a YouTube video (downloads audio and transcribes)
-./transcribe.sh "<youtube_url>"
-
-# Transcribe an existing audio file
-python transcribe.py <audio_file_path> [device]  # device can be "cpu" or "mlx"
+# Run the full pipeline (download, transcribe, summarize)
+./scripts/pipeline.sh "<youtube_url>"
 ```
 
 ## Architecture & Key Design Decisions
@@ -28,8 +25,8 @@ python transcribe.py <audio_file_path> [device]  # device can be "cpu" or "mlx"
 ### Processing Pipeline
 The system is designed as a simple, bash-orchestrated pipeline. Each step is an independent, runnable script that communicates via JSON files.
 
-1.  **Transcription**: `transcribe.sh` and `transcribe.py` use `yt-dlp` to download audio and a local Whisper model (MLX for Apple Silicon, faster-whisper for CPU) to generate transcripts with word-level timestamps.
-2.  **Knowledge Extraction**: `extract_knowledge.py` will process the transcript to identify main points and topics using multiple focused LLM calls.
+1.  **Transcription**: `scripts/pipeline.sh` uses `yt-dlp` to download audio and `vidgrep/transcribe.py` uses a local Whisper model (MLX for Apple Silicon, faster-whisper for CPU) to generate transcripts with word-level timestamps.
+2.  **Knowledge Extraction**: `vidgrep/knowledge.py` processes the transcript to identify main points and topics using multiple focused LLM calls.
 3.  **Verification**: (Planned) `verify_claims.py` will perform external validation of claims made in the video.
 4.  **Interface Generation**: (Planned) `generate_interface.py` will create a self-contained, static HTML file for exploring the video content.
 
@@ -43,42 +40,34 @@ The system is designed as a simple, bash-orchestrated pipeline. Each step is an 
 
 ### Storage Structure
 - `storage/`: Contains all persistent data.
-- Audio files: `storage/<sanitized_video_title>.wav`
-- Transcripts: `storage/<sanitized_video_title>.json`
+- Audio files: `storage/<timestamp>--<sanitized_video_title>.wav`
+- Transcripts: `storage/<timestamp>--<sanitized_video_title>.json`
+- Summaries: `storage/<timestamp>--<sanitized_video_title>.summary.json`
 
 ## Script Specifications
 
-### `pipeline.sh`
-- **Purpose**: Orchestrates the video processing pipeline, from transcription to knowledge extraction.
+### `scripts/pipeline.sh`
+- **Purpose**: Orchestrates the entire video processing pipeline, from downloading the video to extracting knowledge.
 - **Input**: YouTube URL (string).
 - **Output**: Creates a `<video_title>.summary.json` file in the `storage/` directory containing the extracted knowledge.
 
-### `transcribe.sh`
-- **Purpose**: Downloads audio from a YouTube URL, transcribes it using `transcribe.py`, and saves the result as a JSON file.
-- **Input**: YouTube URL (string).
-- **Output**: Creates a `<video_title>.json` file in the `storage/` directory and prints the filename to standard output.
-
-### `transcribe.py`
+### `vidgrep/transcribe.py`
 - **Purpose**: Transcribes an audio file and outputs the transcription result in JSON format.
-- **Input**: 
+- **Input**:
   - `input_filepath` (string): Path to the audio file.
   - `device` (string, optional): The device to use for transcription ("cpu" or "mlx"). Defaults to "cpu".
 - **Output**: Prints a JSON object to standard output representing the transcription, including the text, segments with timestamps, and metadata.
 
-### `extract_knowledge.py`
+### `vidgrep/knowledge.py`
 - **Purpose**: Processes a transcript file to extract a summary and main points.
 - **Input**: Path to a JSON transcript file (string).
 - **Output**: Creates a `<transcript_filename>.summary.json` file.
-- **Configuration**: All prompts, model names, and token parameters are configured in `llm_config.json`.
+- **Configuration**: All prompts, model names, and token parameters are configured in `config/llm_config.json`.
 
-### `llm.py`
+### `vidgrep/llm.py`
 - **Purpose**: Provides a simple, configured interface for making API calls to LLMs via OpenRouter. It is integrated with Langfuse for logging.
 - **`call_llm()`**: The primary function for making LLM calls. It takes a user prompt and optional parameters. It is decorated with `@observe()` to automatically handle logging.
 - **Configuration**: API keys and model details are managed via environment variables, defined in `.env.example`.
-
-### `decorators.py`
-- **Purpose**: Contains decorators for cross-cutting concerns, such as logging.
-- **`@langfuse_logging`**: A decorator that wraps a function to log its execution to Langfuse, including inputs, outputs, and errors.
 
 ## Future Work
 - Implement a progress bar for transcription and an overall pipeline progress bar.

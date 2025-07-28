@@ -46,7 +46,7 @@ fi
 
 # Transcribe audio
 echo "Transcribing audio..."
-poetry run python -m vidgrep.transcribe "$AUDIO_FILE" > "$TRANSCRIPT_FILE"
+poetry run python -m vidgrep.transcribe "$AUDIO_FILE" mlx > "$TRANSCRIPT_FILE"
 if [ $? -ne 0 ]; then
     echo "ERROR: Transcription failed" >&2
     exit 1
