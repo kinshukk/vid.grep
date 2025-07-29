@@ -44,7 +44,8 @@ def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5) -> 'Transc
     if device == "mlx":
         import mlx_whisper
 
-        result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-medium-mlx-q4")
+        # result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-medium-mlx-q4")
+        result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-large-v3-mlx")
         return TranscriptionResult(
             text=result["text"],
             segments=result["segments"],
