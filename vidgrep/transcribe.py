@@ -43,9 +43,17 @@ def transcribe(input_filepath:str, device:str="mlx", beam_size:int=5) -> 'Transc
     """
     if device == "mlx":
         import mlx_whisper
+        import sys
+        import io
+        from contextlib import redirect_stdout
 
-        # result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-medium-mlx-q4")
-        result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-large-v3-mlx")
+        f = io.StringIO()
+        with redirect_stdout(f):
+            result = mlx_whisper.transcribe(input_filepath, path_or_hf_repo="mlx-community/whisper-medium-mlx", verbose=True)
+        
+        # Print captured output (progress bar) to stderr
+        print(f.getvalue(), file=sys.stderr)
+        
         return TranscriptionResult(
             text=result["text"],
             segments=result["segments"],

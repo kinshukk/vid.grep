@@ -13,6 +13,7 @@ from typing import Dict, List, Any
 from .llm import call_llm, count_tokens, get_default_model_info, get_default_model
 from .transcribe import TranscriptionResult
 from langfuse import observe
+from tqdm import tqdm
 
 def load_llm_config() -> Dict[str, Any]:
     """Loads the LLM configuration from the `config/llm_config.json` file."""
@@ -137,9 +138,8 @@ def summarize_text(transcript: str) -> str:
         chunk_summaries = []
         previous_summary = ""
         
-        for i, chunk in enumerate(chunks):
-            print(f"Summarizing chunk {i+1}/{len(chunks)}...")
-            prompt = PROMPTS["chunk_summary_with_context"].format(previous_summary=previous_summary, chunk=chunk) if i > 0 else PROMPTS["chunk_summary"].format(chunk=chunk)
+        for chunk in tqdm(chunks, desc="Summarizing chunks"):
+            prompt = PROMPTS["chunk_summary_with_context"].format(previous_summary=previous_summary, chunk=chunk) if previous_summary else PROMPTS["chunk_summary"].format(chunk=chunk)
             summary = call_llm(prompt, model, max_tokens=LLM_CONFIG['params']['chunk_summary_max_tokens'])
             chunk_summaries.append(summary)
             previous_summary = summary
