@@ -38,7 +38,12 @@ SUMMARY_FILE="$STORAGE_DIR/${SAFE_TITLE}.summary.json"
 
 # Download audio
 echo "Downloading audio..."
-yt-dlp "$URL" --extract-audio --audio-format wav -o "$AUDIO_FILE"
+yt-dlp "$URL" \
+    --extract-audio \
+    --audio-format wav \
+    --audio-quality 0 \
+    -f "bestaudio/best" \
+    -o "$STORAGE_DIR/${SAFE_TITLE}.%(ext)s"
 if [ $? -ne 0 ]; then
     echo "ERROR: Audio download failed" >&2
     exit 1

@@ -4,6 +4,12 @@
 
 The core philosophy is to optimize for the "time from video file to actionable insights."
 
+## installation
+
+- install poetry
+- `poetry install --no-root`
+- make sure yt-dlp and ffmpeg are installed
+
 ## Usage
 
 ```bash

@@ -33,3 +33,12 @@ This is an append-only log to document all changes, bugs, fixes, style guides, r
   - Updated `GEMINI.md`, `README.md`, and `LOG.md` to reflect the current state of the project.
   - Identified and staged unnecessary files for deletion (`__pycache__`, `yt-summarizer/`, old `pipeline.sh`, `storage/*`, `.pytest_cache/`).
   - Reorganized `TODO.md` based on implementation difficulty.
+- **yt-dlp Format Selection Fix (October 2025):**
+  - Root cause: yt-dlp version 2025.09.05 was outdated, causing "nsig extraction failed" errors with YouTube's current player.
+  - Solution: Updated yt-dlp to version 2025.10.14 via `pip install -U yt-dlp`.
+  - Enhanced `pipeline.sh` with robust format selection:
+    - Added `-f "bestaudio/best"` flag to select best available audio format
+    - Added `--audio-quality 0` for highest quality conversion
+    - Changed output template to use `%(ext)s` placeholder for dynamic extension insertion
+  - Tested successfully with video https://www.youtube.com/watch?v=C4oBC14fN5o (11:54 Hindi content)
+  - Pipeline now handles format unavailability gracefully by falling back to best available format.
